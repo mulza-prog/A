@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String
+  name      String
+  role      String     @default("admin")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Room {
+  id            String     @id @default(cuid())
+  name          String
+  description   String     @db.Text
+  capacity      Int        @default(2)
+  pricePerNight Float      @default(80)
+  amenities     String[]   @default(["WiFi", "AC", "TV", "Kitchen"])
+  images        String[]   @default([])
+  isAvailable   Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  bookings      Booking[]
+}
+
+model Booking {
+  id              String     @id @default(cuid())
+  guestName       String
+  guestEmail      String
+  guestPhone      String
+  roomId          String
+  room            Room       @relation(fields: [roomId], references: [id])
+  checkInDate     DateTime
+  checkOutDate    DateTime
+  numberOfGuests  Int        @default(1)
+  totalPrice      Float
+  specialRequests String?    @db.Text
+  status          String     @default("pending")
+  paymentStatus   String     @default("unpaid")
+  notes           String?    @db.Text
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  reviews         Review[]
+}
+
+model Review {
+  id        String     @id @default(cuid())
+  bookingId String
+  booking   Booking    @relation(fields: [bookingId], references: [id])
+  guestName String
+  rating    Int        @default(5)
+  comment   String     @db.Text
+  images    String[]   @default([])
+  isPublic  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Availability {
+  id          String     @id @default(cuid())
+  roomId      String
+  date        DateTime
+  isAvailable Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model EmailLog {
+  id        String     @id @default(cuid())
+  to        String
+  subject   String
+  type      String
+  sent      Boolean    @default(false)
+  error     String?
+  createdAt DateTime   @default(now())
+}
